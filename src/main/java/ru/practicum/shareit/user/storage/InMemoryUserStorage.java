@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class InMemoryUserStorage implements UserStorage{
+public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
     private Long id = 1L;
 
@@ -23,7 +23,6 @@ public class InMemoryUserStorage implements UserStorage{
 
     @Override
     public User update(Long id, User user) {
-
         users.put(id, user);
         return find(id);
     }
