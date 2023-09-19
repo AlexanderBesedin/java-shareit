@@ -1,25 +1,21 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemDto {
+public class UserDto {
     private Long id;
     @NotBlank(message = "Name must be completed")
     private String name;
-    @NotBlank(message = "Description must be completed")
-    private String description;
-    @NotNull(message = "Available must be completed")
-    private Boolean available;
-    private Long request;
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email must be completed")
+    private String email;
 }
