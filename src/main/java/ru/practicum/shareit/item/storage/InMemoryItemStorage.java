@@ -33,42 +33,45 @@ public class InMemoryItemStorage implements ItemStorage {
     }
 
     @Override
-    public Item find(Long id) throws NotFoundException {
-        Item findItem = null;
-        for (Set<Item> items : userItems.values()) {
-            findItem = items
-                    .stream()
-                    .filter(item -> id.equals(item.getId()))
-                    .findFirst()
-                    .orElseThrow(
-                            () -> new NotFoundException("Cannot find item with id = " + id));
-        }
-        return findItem;
+    public Item get(Long id) throws NotFoundException {
+        return userItems.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(item -> id.equals(item.getId()))
+                .findFirst()
+                .orElseThrow(
+                        () -> new NotFoundException("Cannot find item with id = " + id));
     }
 
     @Override
-    public Set<Item> findAllByUser(Long owner) {
+    public Item getItemByUser(Long id, Long owner) throws NotFoundException {
+        return userItems.get(owner)
+                .stream()
+                .filter(item -> id.equals(item.getId()))
+                .findFirst()
+                .orElseThrow(
+                        () -> new NotFoundException(
+                                String.format("Item id = %d does not belong to the owner id = %d", id, owner)
+                        )
+                );
+    }
+
+    @Override
+    public Set<Item> getAllByUser(Long owner) {
         return userItems.get(owner);
     }
 
     @Override
-    public List<Item> findAllByText(String text) {
-        String lowerCaseText = text.toLowerCase();
-        List<Item> matchItems = new ArrayList<>();
-
-        for (Set<Item> items : userItems.values()) {
-            matchItems.addAll(items);
-        }
-
-        matchItems = matchItems.stream()
+    public List<Item> getAllByText(String text) {
+        return userItems.values()
+                .stream()
+                .flatMap(Collection::stream)
                 .filter(item -> item.getAvailable()
-                                && (item.getName().toLowerCase().contains(lowerCaseText)
-                                || item.getDescription().toLowerCase().contains(lowerCaseText)
+                                && (item.getName().toLowerCase().contains(text.toLowerCase())
+                                || item.getDescription().toLowerCase().contains(text.toLowerCase())
                         )
                 )
                 .collect(Collectors.toList());
-
-        return matchItems;
     }
 
     @Override

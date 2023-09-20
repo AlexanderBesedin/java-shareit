@@ -9,9 +9,9 @@ public interface UserStorage {
 
     User update(Long id, User user);
 
-    User find(Long id);
+    User get(Long id);
 
-    List<User> findAll();
+    List<User> getAll();
 
     boolean checkExist(Long id);
 

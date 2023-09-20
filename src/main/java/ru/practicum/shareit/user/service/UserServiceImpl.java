@@ -36,25 +36,21 @@ public class UserServiceImpl implements UserService {
         if (!userStorage.checkExist(id) || id == null) {
             throw new NotFoundException("Cannot update a non-existent user");
         }
+        User user = userStorage.get(id);
 
-        User user = userStorage.find(id);
-        User newUser = UserMapper.toUser(userDto);
-
-        for (User oldUser : userStorage.findAll()) {
-            String email = oldUser.getEmail();
-            Long userId = oldUser.getId();
-            if (email.equals(newUser.getEmail()) && !userId.equals(id)) {
+        for (User oldUser : userStorage.getAll()) {
+            if (oldUser.getEmail().equals(userDto.getEmail()) && !oldUser.getId().equals(id)) {
                 throw new DuplicateEmailException("Email cannot be duplicated");
             }
         }
 
-        if (newUser.getId() == null) newUser.setId(id);
-        if (newUser.getName() == null) newUser.setName(user.getName());
-        if (newUser.getEmail() == null) newUser.setEmail(user.getEmail());
+        if (userDto.getId() != null) user.setId(userDto.getId());
+        if (userDto.getName() != null) user.setName(userDto.getName());
+        if (userDto.getEmail() != null) user.setEmail(userDto.getEmail());
 
-        userStorage.update(id, newUser);
-        log.info("User {} has been UPDATED", newUser);
-        return UserMapper.toUserDto(newUser);
+        userStorage.update(id, user);
+        log.info("User {} has been UPDATED", user);
+        return UserMapper.toUserDto(user);
     }
 
     @Override
@@ -62,7 +58,7 @@ public class UserServiceImpl implements UserService {
         if (!userStorage.checkExist(id) || id == null) {
             throw new NotFoundException("Cannot get a non-existent user");
         }
-        User user = userStorage.find(id);
+        User user = userStorage.get(id);
         log.info("Get a user with ID = {}", id);
         return UserMapper.toUserDto(user);
     }
@@ -70,7 +66,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> getAll() {
         log.info("Get all users");
-        return userStorage.findAll().stream()
+        return userStorage.getAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
@@ -86,7 +82,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean validateEmail(UserDto userDto) {
-         return userStorage.findAll()
+         return userStorage.getAll()
                 .stream()
                 .anyMatch(user -> user.getEmail().equals(userDto.getEmail()));
     }

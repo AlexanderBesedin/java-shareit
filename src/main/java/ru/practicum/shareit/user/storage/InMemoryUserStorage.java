@@ -24,16 +24,16 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User update(Long id, User user) {
         users.put(id, user);
-        return find(id);
+        return get(id);
     }
 
     @Override
-    public User find(Long id) {
+    public User get(Long id) {
         return users.get(id);
     }
 
     @Override
-    public List<User> findAll() {
+    public List<User> getAll() {
         return new ArrayList<>(users.values());
     }
 

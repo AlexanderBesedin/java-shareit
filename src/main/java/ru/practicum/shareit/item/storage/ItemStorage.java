@@ -10,13 +10,15 @@ public interface ItemStorage {
 
     Item update(Long owner, Item item);
 
-    Item find(Long id);
+    Item get(Long id);
 
-    Set<Item> findAllByUser(Long owner);
+    Item getItemByUser(Long id, Long owner);
 
-    List<Item> findAllByText(String text);
+    Set<Item> getAllByUser(Long owner);
 
-    public boolean isOwnerAdded(Long owner);
+    List<Item> getAllByText(String text);
+
+    boolean isOwnerAdded(Long owner);
 
     void deleteUserWithItems(Long id);
 }

@@ -40,28 +40,17 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Cannot get items with non-added user");
         }
 
-        Set<Item> items = itemStorage.findAllByUser(owner);
-        Item findItem = items
-                .stream()
-                .filter(i -> id.equals(i.getId()))
-                .findFirst()
-                .orElseThrow(
-                        () -> new NotFoundException(
-                                String.format("Item id = %d does not belong to the owner id = %d", id, owner)
-                        )
-                );
-
-        items.remove(findItem);
-        Item item = ItemMapper.toItem(owner, itemDto);
+        Item findItem = itemStorage.getItemByUser(id, owner);
+        itemStorage.getAllByUser(owner).remove(findItem);
         //Проверяем поля полученного itemDto на null
-        if (item.getId() == null) item.setId(id);
-        if (item.getName() == null) item.setName(findItem.getName());
-        if (item.getDescription() == null) item.setDescription(findItem.getDescription());
-        if (item.getAvailable() == null) item.setAvailable(findItem.getAvailable());
-        if (item.getRequest() == null) item.setRequest(findItem.getRequest());
+        if (itemDto.getId() != null) findItem.setId(itemDto.getId());
+        if (itemDto.getName() != null) findItem.setName(itemDto.getName());
+        if (itemDto.getDescription() != null) findItem.setDescription(itemDto.getDescription());
+        if (itemDto.getAvailable() != null) findItem.setAvailable(itemDto.getAvailable());
+        if (itemDto.getRequest() != null) findItem.setRequest(itemDto.getRequest());
 
-        log.info("Item {} has been UPDATED", item);
-        return ItemMapper.toItemDto(itemStorage.update(owner, item));
+        log.info("Item {} has been UPDATED", findItem);
+        return ItemMapper.toItemDto(itemStorage.update(owner, findItem));
     }
 
     @Override
@@ -70,7 +59,7 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Cannot get items with non-existent user");
         }
         log.info("Get item id = {}", id);
-        return ItemMapper.toItemDto(itemStorage.find(id));
+        return ItemMapper.toItemDto(itemStorage.get(id));
     }
 
     @Override
@@ -79,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Cannot get items with non-added user");
         }
         log.info("Get all items by owner id = {}", owner);
-        return itemStorage.findAllByUser(owner)
+        return itemStorage.getAllByUser(owner)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toSet());
@@ -92,7 +81,7 @@ public class ItemServiceImpl implements ItemService {
         }
         if (text == null || text.isEmpty()) return List.of();
 
-        return itemStorage.findAllByText(text)
+        return itemStorage.getAllByText(text)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
