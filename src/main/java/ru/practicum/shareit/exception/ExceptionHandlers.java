@@ -14,14 +14,14 @@ import java.util.Map;
 @Slf4j
 public class ExceptionHandlers {
     @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class,
-            ValidationException.class})
+            ValidationException.class, BookingException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleBadRequest(final RuntimeException e) {
         log.debug("{}: {}", e.getClass(), e.getMessage());
         return Map.of("error", e.getMessage());
     }
 
-    @ExceptionHandler(NotFoundException.class)
+    @ExceptionHandler({NotFoundException.class, NotOwnerException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleNotFound(final RuntimeException e) {
         log.debug("{}: {}", e.getClass(), e.getMessage());

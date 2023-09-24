@@ -4,18 +4,29 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+
 /**
  * TODO Sprint add-controllers.
  */
 @Data
+@Entity
+@Table(name = "items")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Item {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; //уникальный идентификатор вещи
+    @Column(nullable = false)
     private String name; //краткое название
+    @Column(nullable = false)
     private String description; //развёрнутое описание
+    @Column(name = "is_available", nullable = false)
     private Boolean available; //статус о том, доступна или нет вещь для аренды
+    @Column(name = "owner_id")
     private Long owner; //владелец вещи
+    @Column(name = "request_id")
     private Long request; //если вещь была создана по запросу другого пользователя, то в этом
     // поле будет храниться ссылка на соответствующий запрос.
 }

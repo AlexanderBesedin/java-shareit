@@ -12,9 +12,10 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 public class UserDto {
     private Long id;
-    @NotBlank(message = "Name must be completed")
+    @NotBlank(groups = CreateGroup.class)
     private String name;
-    @Email(message = "Invalid email format")
-    @NotBlank(message = "Email must be completed")
+    @Email(groups = CreateGroup.class)
+    @NotBlank(groups = CreateGroup.class)
+    @Email
     private String email;
 }
