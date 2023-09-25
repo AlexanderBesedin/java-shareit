@@ -20,11 +20,10 @@ public class Comment {
     private Long id;
     @Column(nullable = false)
     private String text;
-
     @ManyToOne
     @JoinColumn(name = "item_id", referencedColumnName = "id", nullable = false)
     private Item item;
-    @Column(name = "author", nullable = false)
+    @Column(name = "author")
     private String authorName;
     @Column(nullable = false)
     private LocalDateTime created;

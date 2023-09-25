@@ -10,14 +10,14 @@ import ru.practicum.shareit.exception.BookingException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -78,32 +78,31 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemWithBookingDto get(Long id, Long owner) {
+    public ItemWithBookingDto get(Long id, Long userId) {
         if (id == null || !itemRepository.existsById(id)) {
             throw new NotFoundException("Cannot get non-existent item");
         }
-
-        if (owner == null || !userRepository.existsById(owner)) {
-            throw new NotFoundException("Cannot get items with non-existent user");
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(
+                        () -> new NotFoundException("Cannot get items with non-existent user")
+                );
         log.info("Get item id = {}", id);
         return ItemMapper.toItemDtoWithBooking(itemRepository.getReferenceById(id),
-                bookingRepository.findByItemOwner(owner), owner, commentRepository.findByItemId(id));
+                bookingRepository.findByItemOwner(userId), user, commentRepository.findByItemId(id));
     }
 
     @Override
     public List<ItemWithBookingDto> getAllByUser(Long owner) {
         User user = userRepository.findById(owner)
                 .orElseThrow(
-                () -> new NotFoundException("Cannot get items with non-existent user")
-        );
-
+                        () -> new NotFoundException("Cannot get items with non-existent user")
+                );
         log.info("Get all items by owner id = {}", owner);
         return itemRepository.findAllByOwner(owner)
                 .stream()
                 .map(item -> ItemMapper.toItemDtoWithBooking(item,
-                        bookingRepository.findByItemOwner(owner), owner,
-                        commentRepository.findByAuthorName(user.getName())))
+                        bookingRepository.findByItem(item), user,
+                        commentRepository.findByItemId(item.getId())))
                 .collect(Collectors.toList());
     }
 

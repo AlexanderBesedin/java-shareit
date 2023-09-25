@@ -8,22 +8,23 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 
 public class CommentMapper {
-
-    public static CommentDto toCommentDto(Comment comment, User author) {
-        return CommentDto.builder()
+    public static CommentDto toCommentDto(Comment comment) {
+        return CommentDto
+                .builder()
                 .id(comment.getId())
-                .author(author.getName())
-                .created(comment.getCreated())
                 .text(comment.getText())
+                .item(ItemMapper.toItemDto(comment.getItem()))
+                .authorName(comment.getAuthorName())
+                .created(comment.getCreated())
                 .build();
     }
 
     public static Comment toComment(CommentDto commentDto, User author, Item item) {
         return Comment.builder()
-                .authorName(author.getName())
-                .created(LocalDateTime.now())
                 .text(commentDto.getText())
                 .item(item)
+                .authorName(author.getName())
+                .created(LocalDateTime.now())
                 .build();
     }
 }

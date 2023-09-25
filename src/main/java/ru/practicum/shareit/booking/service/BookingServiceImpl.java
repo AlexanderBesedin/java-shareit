@@ -53,7 +53,7 @@ public class BookingServiceImpl implements BookingService {
         }
         bookingDto.setStatus(Status.WAITING);
         bookingDto.setItem(item);
-        bookingDto.setBooker(booker);
+        bookingDto.setBooker(UserMapper.toUserDto(booker));
 
         Booking booking = bookingRepository.save(BookingMapper.toBooking(bookingDto, userId));
         log.info("Booking id = {} of itemId = {} has been added ", booking.getId(), booking.getItem());
@@ -106,7 +106,7 @@ public class BookingServiceImpl implements BookingService {
                 bookings = bookingRepository.findByBookerIdOrderByStartDesc(bookerId);
                 break;
             case "CURRENT":
-                bookings = bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByStartDesc(bookerId,
+                bookings = bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfterOrderByStart(bookerId,
                         start, end);
                 break;
             case "PAST":
