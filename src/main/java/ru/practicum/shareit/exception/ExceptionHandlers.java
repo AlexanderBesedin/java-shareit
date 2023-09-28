@@ -39,6 +39,7 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleServerError(Exception e) {
         log.debug("{} (ServerError): {}", e.getClass(), e.getMessage());
+        e.printStackTrace();
         return Map.of("error", e.getMessage());
     }
 }

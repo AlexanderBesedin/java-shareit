@@ -39,10 +39,11 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto add(Long owner, ItemDto itemDto) {
-        if (owner == null || !userRepository.existsById(owner)) {
-            throw new NotFoundException("Cannot create item with non-existent user");
-        }
-        Item item = itemRepository.save(ItemMapper.toItem(owner, itemDto));
+        User user = userRepository.findById(owner)
+                .orElseThrow(
+                        () -> new NotFoundException("Cannot create item with non-existent user")
+                );
+        Item item = itemRepository.save(ItemMapper.toItem(user, itemDto));
         log.info("Item added: id = {}, name = {}, ownerId = {}", item.getId(), item.getName(), owner);
         return ItemMapper.toItemDto(item);
     }
@@ -58,10 +59,7 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Cannot update item with non-existent user");
         }
 
-        Item findItem = itemRepository.findById(id)
-                .stream()
-                .takeWhile(item -> owner.equals(item.getOwner()))
-                .findAny()
+        Item findItem  = itemRepository.findByOwnerIdAndId(owner, id)
                 .orElseThrow(
                         () -> new NotOwnerException("Cannot get items with non-added user"));
 
@@ -78,6 +76,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ItemWithBookingDto get(Long id, Long userId) {
         if (id == null || !itemRepository.existsById(id)) {
             throw new NotFoundException("Cannot get non-existent item");
@@ -88,17 +87,18 @@ public class ItemServiceImpl implements ItemService {
                 );
         log.info("Get item id = {}", id);
         return ItemMapper.toItemDtoWithBooking(itemRepository.getReferenceById(id),
-                bookingRepository.findByItemOwner(userId), user, commentRepository.findByItemId(id));
+                bookingRepository.findByItemOwnerId(userId), user, commentRepository.findByItemId(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ItemWithBookingDto> getAllByUser(Long owner) {
         User user = userRepository.findById(owner)
                 .orElseThrow(
                         () -> new NotFoundException("Cannot get items with non-existent user")
                 );
         log.info("Get all items by owner id = {}", owner);
-        return itemRepository.findAllByOwner(owner)
+        return itemRepository.findAllByOwnerId(owner)
                 .stream()
                 .map(item -> ItemMapper.toItemDtoWithBooking(item,
                         bookingRepository.findByItem(item), user,
@@ -107,6 +107,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ItemDto> getAllByText(String text, Long renter) {
         if (renter == null || !userRepository.existsById(renter)) {
             throw new NotFoundException("Cannot get items by non-existent user");

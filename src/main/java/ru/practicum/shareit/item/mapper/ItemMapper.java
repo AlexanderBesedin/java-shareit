@@ -28,7 +28,7 @@ public class ItemMapper {
         );
     }
 
-    public static Item toItem(Long owner, ItemDto itemDto) {
+    public static Item toItem(User owner, ItemDto itemDto) {
         return new Item(
                 itemDto.getId(),
                 itemDto.getName(),
@@ -44,12 +44,12 @@ public class ItemMapper {
         LocalDateTime time = LocalDateTime.now();
 
         Optional<Booking> lastBooking = bookings.stream()
-                .filter(b -> user.getId().equals(b.getItem().getOwner()))
+                .filter(b -> user.getId().equals(b.getItem().getOwner().getId()))
                 .filter(b -> b.getItem().getId().equals(item.getId()) && b.getStatus().equals(Status.APPROVED))
                 .filter(b -> (b.getStart().isBefore(time) && b.getEnd().isAfter(time)) || b.getEnd().isBefore(time))
                 .max(Comparator.comparing(Booking::getId));
         Optional<Booking> nextBooking = bookings.stream()
-                .filter(b -> user.getId().equals(b.getItem().getOwner()))
+                .filter(b -> user.getId().equals(b.getItem().getOwner().getId()))
                 .filter(b -> b.getItem().getId().equals(item.getId()) && b.getStatus().equals(Status.APPROVED))
                 .filter(b -> b.getStart().isAfter(time))
                 .min(Comparator.comparing(Booking::getStart));
@@ -69,7 +69,7 @@ public class ItemMapper {
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
-                .ownerId(item.getOwner())
+                .ownerId(item.getOwner().getId())
                 .available(item.getAvailable())
                 .lastBooking(actualLastBooking)
                 .nextBooking(actualNextBooking)

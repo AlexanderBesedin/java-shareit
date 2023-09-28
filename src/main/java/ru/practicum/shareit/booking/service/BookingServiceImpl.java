@@ -13,6 +13,7 @@ import ru.practicum.shareit.exception.BookingException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.UserMapper;
@@ -42,7 +43,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingException(item.getName() + " for booking is not available");
         }
         User booker = UserMapper.toUser(userService.get(userId));
-        if (userId.equals(item.getOwner())) {
+        if (userId.equals(item.getOwner().getId())) {
             throw new NotOwnerException("Impossible to book your own item");
         }
         if (bookingDto.getStart() == null || bookingDto.getEnd() == null
@@ -52,10 +53,10 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingException("Incorrect booking range");
         }
         bookingDto.setStatus(Status.WAITING);
-        bookingDto.setItem(item);
+        bookingDto.setItem(ItemMapper.toItemDto(item));
         bookingDto.setBooker(UserMapper.toUserDto(booker));
 
-        Booking booking = bookingRepository.save(BookingMapper.toBooking(bookingDto, userId));
+        Booking booking = bookingRepository.save(BookingMapper.toBooking(bookingDto, booker));
         log.info("Booking id = {} of itemId = {} has been added ", booking.getId(), booking.getItem());
         return BookingMapper.toBookingDto(booking);
     }
@@ -69,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
                 );
         userService.get(userId); // проверка существования юзера через метод userService
 
-        if (!userId.equals(booking.getItem().getOwner())) {
+        if (!userId.equals(booking.getItem().getOwner().getId())) {
             throw new NotOwnerException("Only the owner of the item can confirm the booking");
         }
         if (booking.getStatus().equals(Status.APPROVED)) {
@@ -81,13 +82,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookingDto get(Long bookingId, Long userId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(
                         () -> new NotFoundException(String.format("Booking ID = %d does not exist", bookingId))
                 );
         userService.get(userId); // проверка существования юзера через метод userService
-        if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwner().equals(userId)) {
+        if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwner().getId().equals(userId)) {
             throw new NotOwnerException("The requester is not the owner of the item or the booking");
         }
         log.info("Get booking id = {}", booking.getId());
@@ -95,7 +97,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BookingDto> getAllByUser(String state, Long bookerId) {
         userService.get(bookerId); // проверка существования юзера через метод userService
         List<Booking> bookings;
@@ -131,6 +133,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingDto> getAllByOwner(String state, Long ownerId) {
         userService.get(ownerId); // проверка существования юзера через метод userService
         List<Booking> bookings;
@@ -138,26 +141,26 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime end = LocalDateTime.now();
         switch (state) {
             case "ALL":
-                bookings = bookingRepository.findByItemOwnerOrderByStartDesc(ownerId);
+                bookings = bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId);
                 break;
             case "FUTURE":
                 bookings = bookingRepository
-                        .findByItemOwnerAndStartIsAfterOrderByStartDesc(ownerId, start);
+                        .findByItemOwnerIdAndStartIsAfterOrderByStartDesc(ownerId, start);
                 break;
             case "CURRENT":
-                bookings = bookingRepository.findByItemOwnerAndStartBeforeAndEndAfterOrderByStartDesc(ownerId,
+                bookings = bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(ownerId,
                         start, end);
                 break;
             case "PAST":
-                bookings = bookingRepository.findByItemOwnerAndEndBeforeOrderByStartDesc(ownerId, end);
+                bookings = bookingRepository.findByItemOwnerIdAndEndBeforeOrderByStartDesc(ownerId, end);
                 break;
             case "WAITING":
                 bookings = bookingRepository
-                        .findByItemOwnerAndStatusOrderByStartDesc(ownerId, Status.WAITING);
+                        .findByItemOwnerIdAndStatusOrderByStartDesc(ownerId, Status.WAITING);
                 break;
             case "REJECTED":
                 bookings = bookingRepository
-                        .findByItemOwnerAndStatusOrderByStartDesc(ownerId, Status.REJECTED);
+                        .findByItemOwnerIdAndStatusOrderByStartDesc(ownerId, Status.REJECTED);
                 break;
             default:
                 throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
