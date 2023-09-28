@@ -3,13 +3,13 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.DuplicateEmailException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,63 +18,72 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
+    private final UserStorage userStorage;
+    private final ItemStorage itemStorage;
 
     @Override
-    @Transactional
     public UserDto add(UserDto userDto) {
-        User user = userRepository.save(UserMapper.toUser(userDto));
+        if (validateEmail(userDto)) {
+            throw new DuplicateEmailException("Email cannot be duplicated");
+        }
+        User user = userStorage.add(UserMapper.toUser(userDto));
         log.info("User {} has been CREATED", user);
         return UserMapper.toUserDto(user);
     }
 
     @Override
-    @Transactional
     public UserDto update(Long id, UserDto userDto) {
-        if (id == null || !userRepository.existsById(id)) {
+        if (!userStorage.checkExist(id) || id == null) {
             throw new NotFoundException("Cannot update a non-existent user");
         }
+        User user = userStorage.get(id);
 
-        for (User oldUser : userRepository.findAll()) {
+        for (User oldUser : userStorage.getAll()) {
             if (oldUser.getEmail().equals(userDto.getEmail()) && !oldUser.getId().equals(id)) {
                 throw new DuplicateEmailException("Email cannot be duplicated");
             }
         }
 
-        User user = userRepository.getReferenceById(id);
-
         if (userDto.getId() != null) user.setId(userDto.getId());
         if (userDto.getName() != null) user.setName(userDto.getName());
         if (userDto.getEmail() != null) user.setEmail(userDto.getEmail());
 
-        userRepository.save(user);
+        userStorage.update(id, user);
         log.info("User {} has been UPDATED", user);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto get(Long id) {
-        if (id == null || !userRepository.existsById(id)) {
+        if (!userStorage.checkExist(id) || id == null) {
             throw new NotFoundException("Cannot get a non-existent user");
         }
+        User user = userStorage.get(id);
         log.info("Get a user with ID = {}", id);
-        return UserMapper.toUserDto(userRepository.getReferenceById(id));
+        return UserMapper.toUserDto(user);
     }
 
     @Override
     public List<UserDto> getAll() {
         log.info("Get all users");
-        return userRepository.findAll().stream()
+        return userStorage.getAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void delete(Long id) {
-        if (id == null || !userRepository.existsById(id)) {
+        if (!userStorage.checkExist(id) || id == null) {
             throw new NotFoundException("Cannot delete a non-existent user");
         }
-        userRepository.deleteById(id);
+        itemStorage.deleteUserWithItems(id);
+        userStorage.delete(id);
         log.info("Delete user with ID = {}", id);
+    }
+
+    private boolean validateEmail(UserDto userDto) {
+         return userStorage.getAll()
+                .stream()
+                .anyMatch(user -> user.getEmail().equals(userDto.getEmail()));
     }
 }
