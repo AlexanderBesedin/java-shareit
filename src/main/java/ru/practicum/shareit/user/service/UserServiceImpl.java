@@ -53,6 +53,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto get(Long id) {
         if (id == null || !userRepository.existsById(id)) {
             throw new NotFoundException("Cannot get a non-existent user");
@@ -62,6 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getAll() {
         log.info("Get all users");
         return userRepository.findAll().stream()
