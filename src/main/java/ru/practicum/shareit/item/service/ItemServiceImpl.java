@@ -54,11 +54,9 @@ public class ItemServiceImpl implements ItemService {
         if (id == null || !itemRepository.existsById(id)) {
             throw new NotFoundException("Cannot update non-existent item");
         }
-
         if (owner == null || !userRepository.existsById(owner)) {
             throw new NotFoundException("Cannot update item with non-existent user");
         }
-      
         Item findItem  = itemRepository.findByOwnerIdAndId(owner, id)
                 .orElseThrow(
                         () -> new NotOwnerException("Cannot get items with non-added user"));
