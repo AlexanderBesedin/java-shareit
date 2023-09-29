@@ -67,7 +67,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getName() != null) findItem.setName(itemDto.getName());
         if (itemDto.getDescription() != null) findItem.setDescription(itemDto.getDescription());
         if (itemDto.getAvailable() != null) findItem.setAvailable(itemDto.getAvailable());
-        if (itemDto.getRequest() != null) findItem.setRequest(itemDto.getRequest());
+        if (itemDto.getRequestId() != null) findItem.setRequestId(itemDto.getRequestId());
 
         log.info("Item {} has been UPDATED", findItem);
         return ItemMapper.toItemDto(itemRepository.save(findItem));

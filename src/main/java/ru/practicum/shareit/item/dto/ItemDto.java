@@ -21,5 +21,5 @@ public class ItemDto {
     private String description;
     @NotNull(message = "Available must be completed")
     private Boolean available;
-    private Long request;
+    private Long requestId;
 }
