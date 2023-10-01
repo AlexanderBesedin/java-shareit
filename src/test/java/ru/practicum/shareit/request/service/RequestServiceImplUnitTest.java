@@ -57,7 +57,7 @@ class RequestServiceImplUnitTest {
 
     @Test
     void shouldThrowIfAddRequestNotExistUser() {
-        when(userRepository.findById(anyLong())).thenThrow(NotFoundException.class);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class,
                 () -> requestService.add(new ItemRequestShortDto(request.getDescription()), 3L));
     }
@@ -72,7 +72,7 @@ class RequestServiceImplUnitTest {
 
     @Test
     void shouldThrowIfRequestWithUserWrongId() {
-        when(userRepository.findById(anyLong())).thenThrow(NotFoundException.class);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> requestService.get(1L, 1L));
     }
 
@@ -94,6 +94,12 @@ class RequestServiceImplUnitTest {
     }
 
     @Test
+    void shouldThrowIfAskAllRequestsOfOwnerByWrongUserId() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> requestService.getByUserId(1L));
+    }
+
+    @Test
     void shouldGetAllRequestsOfOtherUsers() {
         ItemRequest request2 = new ItemRequest(2L, "нужна ножовка", user1, LocalDateTime.now());
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user2));
@@ -101,5 +107,11 @@ class RequestServiceImplUnitTest {
                 .thenReturn(List.of(request2));
 
         assertEquals(1, requestService.getAll(user2.getId(), 0, 1).size());
+    }
+
+    @Test
+    void shouldThrowIfAskAllRequestsByWrongUserId() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> requestService.getAll(1L, 0, 1));
     }
 }

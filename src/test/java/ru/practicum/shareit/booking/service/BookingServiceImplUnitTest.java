@@ -12,6 +12,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BookingException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
@@ -55,9 +56,24 @@ class BookingServiceImplUnitTest {
     }
 
     @Test
+    void shouldThrowIfItemIsNotExist() {
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
+        bookingDto.setItem(null);
+        bookingDto.setItemId(8L);
+        assertThrows(NotFoundException.class, () -> bookingService.add(bookingDto, 1L));
+    }
+
+    @Test
+    void shouldThrowIfItemIsNotAvailable() {
+        item.setAvailable(false);
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.ofNullable(item));
+        assertThrows(BookingException.class, () -> bookingService.add(bookingDto, 2L));
+    }
+
+    @Test
     void shouldThrowIfCreatorIsOwner() {
         when(itemRepository.findById(anyLong())).thenReturn(Optional.ofNullable(item));
-        when(userService.get(1L)).thenThrow(NotOwnerException.class);
+        when(userService.get(1L)).thenReturn(UserMapper.toUserDto(user1));
         assertThrows(NotOwnerException.class, () -> bookingService.add(bookingDto, 1L));
     }
 
@@ -109,6 +125,12 @@ class BookingServiceImplUnitTest {
     }
 
     @Test
+    void shouldThrowIfUpdateNotExistBooking() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(BookingException.class, () -> bookingService.update(3L, 2L, true));
+    }
+
+    @Test
     void shouldThrowIfUpdateNotOwner() {
         bookingDto.setId(1L);
         Booking booking = BookingMapper.toBooking(bookingDto, user2, item);
@@ -151,6 +173,12 @@ class BookingServiceImplUnitTest {
     }
 
     @Test
+    void shouldThrowIfAskNotExistBooking() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> bookingService.get(3L, 2L));
+    }
+
+    @Test
     void shouldThrowIfAskBookingWithNotOwnerId() {
         bookingDto.setId(1L);
         Booking booking = BookingMapper.toBooking(bookingDto, user2, item);
@@ -171,6 +199,6 @@ class BookingServiceImplUnitTest {
     void shouldThrowIfAskAllBookingsForOwnerWithUnknownState() {
         when(userService.get(anyLong())).thenReturn(UserMapper.toUserDto(user2));
         assertThrows(ValidationException.class,
-                () -> bookingService.getAllByUser("Unknown", 2L, 2, 1));
+                () -> bookingService.getAllByOwner("Unknown", 2L, 2, 1));
     }
 }

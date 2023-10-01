@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
-import java.sql.SQLException;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -40,13 +39,6 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleServerError(Exception e) {
         log.debug("{} (ServerError): {}", e.getClass(), e.getMessage());
-        return Map.of("error", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> sqlException(final SQLException e) {
-        log.error("{}" + e.getMessage());
         return Map.of("error", e.getMessage());
     }
 }

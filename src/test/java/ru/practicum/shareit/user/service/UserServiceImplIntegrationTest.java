@@ -58,7 +58,7 @@ class UserServiceImplIntegrationTest {
 
     @Test
     void shouldGetAll() {
-        UserDto userDto2 = new UserDto(null,"user2", "user2@user.com");
+        UserDto userDto2 = new UserDto(null, "user2", "user2@user.com");
         UserDto user = userService.add(userDto);
         UserDto user2 = userService.add(userDto2);
         List<UserDto> expectedUsers = List.of(user, user2);

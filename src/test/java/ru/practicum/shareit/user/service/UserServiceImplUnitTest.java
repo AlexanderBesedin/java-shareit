@@ -52,7 +52,14 @@ class UserServiceImplUnitTest {
     @Test
     void shouldThrowsIfUpdateNotExistUser() {
         UserDto userDto = new UserDto(1L, "Alex", "Alex@user.com");
+        when(repository.existsById(anyLong())).thenReturn(false);
         assertThrows(NotFoundException.class, () -> userService.update(1L, userDto));
+    }
+
+    @Test
+    void shouldThrowsIfUpdateUserIdIsNull() {
+        UserDto userDto = new UserDto(1L, "Alex", "Alex@user.com");
+        assertThrows(NotFoundException.class, () -> userService.update(null, userDto));
     }
 
     @Test
@@ -103,7 +110,13 @@ class UserServiceImplUnitTest {
 
     @Test
     void shouldThrowsIfGetNotExistUser() {
+        when(repository.existsById(anyLong())).thenReturn(false);
         assertThrows(NotFoundException.class, () -> userService.get(1L));
+    }
+
+    @Test
+    void shouldThrowsIfGetUserIdIsNull() {
+        assertThrows(NotFoundException.class, () -> userService.get(null));
     }
 
     @Test
@@ -121,5 +134,16 @@ class UserServiceImplUnitTest {
         when(repository.existsById(anyLong())).thenReturn(true);
         userService.delete(id);
         verify(repository, Mockito.times(1)).deleteById(id);
+    }
+
+    @Test
+    void shouldThrowsIfDeleteNotExistUser() {
+        when(repository.existsById(anyLong())).thenReturn(false);
+        assertThrows(NotFoundException.class, () -> userService.delete(1L));
+    }
+
+    @Test
+    void shouldThrowsIfDeletedUserIdIsNull() {
+        assertThrows(NotFoundException.class, () -> userService.delete(null));
     }
 }

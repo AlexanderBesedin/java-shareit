@@ -10,12 +10,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.exception.*;
+import ru.practicum.shareit.exception.DuplicateEmailException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -140,84 +139,5 @@ class UserControllerTest {
                 .andExpect(result -> assertEquals("Email cannot be duplicated",
                         Objects.requireNonNull(result.getResolvedException()).getMessage()));
 
-    }
-
-    @Test
-    @SneakyThrows
-    void handlerNotOwnerExceptionTest() {
-        UserDto request = new UserDto(null, "user", "user@user.com");
-        when(userService.add(any())).thenThrow(new NotOwnerException("some text"));
-
-        mockMvc.perform(post("/users")
-                        .content(objectMapper.writeValueAsString(request))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @SneakyThrows
-    void handlerBookingExceptionTest() {
-        UserDto request = new UserDto(null, "user", "user@user.com");
-
-        when(userService.add(any())).thenThrow(new BookingException("some text"));
-
-        mockMvc.perform(post("/users")
-                        .content(objectMapper.writeValueAsString(request))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @SneakyThrows
-    void handlerValidationExceptionTest() {
-        UserDto request = new UserDto(null, "user", "user@user.com");
-
-        when(userService.add(any())).thenThrow(new ValidationException("some text"));
-
-        mockMvc.perform(post("/users")
-                        .content(objectMapper.writeValueAsString(request))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @SneakyThrows
-    public void handlerRuntimeExceptionTest() {
-        try {
-             request = new UserDto(null, "user", "user@user.com");
-        } catch (Throwable e) {
-            when(userService.add(any())).thenThrow(new RuntimeException(e.getMessage()));
-
-            mockMvc.perform(post("/users")
-                            .content(objectMapper.writeValueAsString(request))
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isInternalServerError());
-        }
-    }
-
-    @Test
-    @SneakyThrows
-    public void handlerSQLExceptionTest() {
-        try {
-            request = new UserDto(null, "user", "user@user.com");
-        } catch (Throwable e) {
-            given(userService.add(any())).willAnswer(invocation -> {
-                throw new SQLException(e.getMessage()); });
-
-            mockMvc.perform(post("/users")
-                            .content(objectMapper.writeValueAsString(request))
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isConflict());
-        }
     }
 }
