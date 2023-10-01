@@ -12,6 +12,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestShortDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.RequestRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
@@ -28,11 +29,11 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     public ItemRequestDto add(ItemRequestShortDto itemRequestShortDto, Long userId) {
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(
                         () -> new NotFoundException("Cannot create request with non-existent user")
                 );
-        ItemRequest request = requestRepository.save(RequestMapper.toItemRequest(itemRequestShortDto, userId));
+        ItemRequest request = requestRepository.save(RequestMapper.toItemRequest(itemRequestShortDto, user));
         log.info("Request id = {} with description = {} has been added ", request.getId(), request.getDescription());
         return RequestMapper.toItemRequestDto(request, itemRepository.findByRequestIdOrderByIdDesc(request.getId()));
     }

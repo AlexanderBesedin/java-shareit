@@ -5,18 +5,19 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestShortDto;
 import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class RequestMapper {
-    public static ItemRequest toItemRequest(ItemRequestShortDto itemRequestShortDto, Long userId) {
+    public static ItemRequest toItemRequest(ItemRequestShortDto itemRequestShortDto, User user) {
         return ItemRequest
                 .builder()
                 .description(itemRequestShortDto.getDescription())
                 .created(LocalDateTime.now())
-                .requestorId(userId)
+                .requestor(user)
                 .build();
     }
 

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -23,8 +24,9 @@ public class ItemRequest {
     private Long id; //уникальный идентификатор запроса
     @Column(name = "description")
     private String description; //текст запроса, содержащий описание требуемой вещи
-    @Column(name = "requestor_id")
-    private Long requestorId; //пользователь, создавший запрос
+    @ManyToOne
+    @JoinColumn(name = "requestor_id", referencedColumnName = "id")
+    private User requestor; //пользователь, создавший запрос
     @Column(name = "created")
     private LocalDateTime created; //дата и время создания запроса
 }

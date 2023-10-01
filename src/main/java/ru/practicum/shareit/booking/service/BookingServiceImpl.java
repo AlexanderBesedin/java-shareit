@@ -14,7 +14,6 @@ import ru.practicum.shareit.exception.BookingException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.UserMapper;
@@ -54,10 +53,8 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingException("Incorrect booking range");
         }
         bookingDto.setStatus(Status.WAITING);
-        bookingDto.setItem(ItemMapper.toItemDto(item));
-        bookingDto.setBooker(UserMapper.toUserDto(booker));
 
-        Booking booking = bookingRepository.save(BookingMapper.toBooking(bookingDto, booker));
+        Booking booking = bookingRepository.save(BookingMapper.toBooking(bookingDto, booker, item));
         log.info("Booking id = {} of itemId = {} has been added ", booking.getId(), booking.getItem());
         return BookingMapper.toBookingDto(booking);
     }
