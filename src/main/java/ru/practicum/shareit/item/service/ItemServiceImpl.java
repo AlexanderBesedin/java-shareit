@@ -18,6 +18,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.RequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -34,7 +36,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
-
+    private final RequestRepository requestRepository;
 
     @Override
     @Transactional
@@ -43,7 +45,12 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(
                         () -> new NotFoundException("Cannot create item with non-existent user")
                 );
-        Item item = itemRepository.save(ItemMapper.toItem(user, itemDto));
+        ItemRequest request = null;
+        if (itemDto.getRequestId() != null) {
+            request = requestRepository.getReferenceById(itemDto.getRequestId());
+        }
+
+        Item item = itemRepository.save(ItemMapper.toItem(user, itemDto, request));
         log.info("Item added: id = {}, name = {}, ownerId = {}", item.getId(), item.getName(), owner);
         return ItemMapper.toItemDto(item);
     }
@@ -57,7 +64,7 @@ public class ItemServiceImpl implements ItemService {
         if (owner == null || !userRepository.existsById(owner)) {
             throw new NotFoundException("Cannot update item with non-existent user");
         }
-        Item findItem  = itemRepository.findByOwnerIdAndId(owner, id)
+        Item findItem = itemRepository.findByOwnerIdAndId(owner, id)
                 .orElseThrow(
                         () -> new NotOwnerException("Cannot get items with non-added user"));
 
@@ -67,8 +74,9 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getName() != null) findItem.setName(itemDto.getName());
         if (itemDto.getDescription() != null) findItem.setDescription(itemDto.getDescription());
         if (itemDto.getAvailable() != null) findItem.setAvailable(itemDto.getAvailable());
-        if (itemDto.getRequest() != null) findItem.setRequest(itemDto.getRequest());
-
+        if (itemDto.getRequestId() != null) {
+            findItem.setRequest(requestRepository.getReferenceById(itemDto.getRequestId()));
+        }
         log.info("Item {} has been UPDATED", findItem);
         return ItemMapper.toItemDto(itemRepository.save(findItem));
     }
