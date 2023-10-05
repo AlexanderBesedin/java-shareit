@@ -104,7 +104,7 @@ public class ItemServiceImpl implements ItemService {
                         () -> new NotFoundException("Cannot get items with non-existent user")
                 );
         log.info("Get all items by owner id = {}", owner);
-        return itemRepository.findAllByOwnerId(owner)
+        return itemRepository.findAllByOwnerIdOrderByIdAsc(owner)
                 .stream()
                 .map(item -> ItemMapper.toItemDtoWithBooking(item,
                         bookingRepository.findByItem(item), user,

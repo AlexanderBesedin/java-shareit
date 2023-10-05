@@ -35,7 +35,7 @@ class ItemRepositoryTest {
         User owner = createUser();
         Item item1 = createItem(owner);
         Item item2 = createItem(owner);
-        Assertions.assertEquals(List.of(item1, item2), itemRepository.findAllByOwnerId(owner.getId()));
+        Assertions.assertEquals(List.of(item1, item2), itemRepository.findAllByOwnerIdOrderByIdAsc(owner.getId()));
     }
 
     @Test

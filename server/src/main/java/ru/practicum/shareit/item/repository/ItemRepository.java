@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface ItemRepository extends JpaRepository<Item, Long> {
     Optional<Item> findByOwnerIdAndId(Long ownerId, Long id);
 
-    List<Item> findAllByOwnerId(Long owner);
+    List<Item> findAllByOwnerIdOrderByIdAsc(Long owner);
 
     List<Item> findByRequestIdOrderByIdDesc(Long requestId);
 
